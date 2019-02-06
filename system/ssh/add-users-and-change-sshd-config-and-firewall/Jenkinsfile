@@ -22,7 +22,7 @@ pipeline {
     string(
       name: 'GIT_BRANCHES_ANSIBLE',
       defaultValue: '*/master',
-      description: "Git branch or tag name or commit id to retrieve of GitHub repository ${env.ANSIBLE_GIT_URL}"
+      description: "Git branch or tag name or commit id to retrieve of GitHub repository"
     )
   }
 
