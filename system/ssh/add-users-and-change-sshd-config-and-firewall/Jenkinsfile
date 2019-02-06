@@ -44,6 +44,10 @@ pipeline {
                               name: 'ANSIBLE_PLAYBOOK',
                               value: "${env.ANSIBLE_PLAYBOOK_1}"
                             ),
+                            password(
+                              name: 'EXTRA_ARGS',
+                              value: "-vvvvvvvvv"
+                            ),
                             string(
                               name: 'GIT_BRANCHES_ANSIBLE',
                               value: "${params.GIT_BRANCHES_ANSIBLE}"
