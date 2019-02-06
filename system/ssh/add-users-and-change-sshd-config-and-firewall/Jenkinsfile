@@ -13,7 +13,7 @@ pipeline {
 
     ANSIBLE_PLAYBOOK_3 = "configure-sshd"
 
-    PRIVATE_KEY_PATH = credentilas('aws_private_key_path')
+    PRIVATE_KEY_PATH = credentials('aws_private_key_path')
 
     WORKING_DIR = "aws_${env.ANSIBLE_PLAYBOOK_1}"
   }
