@@ -1,0 +1,172 @@
+#!groovy
+
+pipeline {
+
+  agent any
+
+  environment {
+    ANSIBLE_GIT_URL = credentials('github_ansible_centos7_ssh')
+
+    ANSIBLE_PLAYBOOK_1 = "add-users"
+
+    ANSIBLE_PLAYBOOK_2 = "add-user-ansible"
+
+    ANSIBLE_PLAYBOOK_3 = "configure-sshd"
+
+    PRIVATE_KEY_PATH = credentilas('aws_private_key_path')
+
+    WORKING_DIR = "aws_${env.ANSIBLE_PLAYBOOK_1}"
+  }
+
+  parameters {
+    string(
+      name: 'GIT_BRANCHES_ANSIBLE',
+      defaultValue: '*/master',
+      description: "Git branch or tag name or commit id to retrieve of GitHub repository ${env.ANSIBLE_GIT_URL}"
+    )
+  }
+
+  stages {
+    stage('Add Users') {
+      steps {
+        withCredentials(
+                          [
+                            file(
+                              variable: 'INVENTORY',
+                              credentialsId: 'aws_ansible_inventory_ssh'
+                            )
+                          ]
+                       )
+          {
+            build job: 'ansible/playbook',
+              parameters: [
+                            string(
+                              name: 'ANSIBLE_PLAYBOOK',
+                              value: "${env.ANSIBLE_PLAYBOOK_1}"
+                            ),
+                            string(
+                              name: 'GIT_BRANCHES_ANSIBLE',
+                              value: "${params.GIT_BRANCHES_ANSIBLE}"
+                            ),
+                            string(
+                              name: 'GIT_URL',
+                              value: "${env.ANSIBLE_GIT_URL}"
+                            ),
+                            credentials(
+                              name: 'INVENTORY',
+                              value: "${env.INVENTORY}"
+                            ),
+                            string(
+                              name: 'PRIVATE_KEY_PATH',
+                              value: "${env.PRIVATE_KEY_PATH}"
+                            ),
+                            string(
+                              name: 'WORKING_DIR',
+                              value: "${env.WORKING_DIR}"
+                            )
+                          ]
+          }
+      }
+    }
+
+    stage('Add user ansible') {
+      steps {
+        withCredentials(
+                          [
+                            file(
+                              variable: 'INVENTORY',
+                              credentialsId: 'aws_ansible_inventory_ssh'
+                            ),
+                            string(
+                              variable: 'REDMINE_IP',
+                              credentialsId: 'app_ip_address'
+                            )
+                          ]
+                       )
+          {
+            build job: 'ansible/playbook',
+              parameters: [
+                            string(
+                              name: 'ANSIBLE_PLAYBOOK',
+                              value: "${env.ANSIBLE_PLAYBOOK_2}"
+                            ),
+                            password(
+                              name: 'EXTRA_ARGS',
+                              value: "-e 'redmine_ip=${env.REDMINE_IP}'"
+                            ),
+                            string(
+                              name: 'GIT_BRANCHES_ANSIBLE',
+                              value: "${params.GIT_BRANCHES_ANSIBLE}"
+                            ),
+                            string(
+                              name: 'GIT_URL',
+                              value: "${env.ANSIBLE_GIT_URL}"
+                            ),
+                            credentials(
+                              name: 'INVENTORY',
+                              value: "${env.INVENTORY}"
+                            ),
+                            string(
+                              name: 'PRIVATE_KEY_PATH',
+                              value: "${env.PRIVATE_KEY_PATH}"
+                            ),
+                            string(
+                              name: 'WORKING_DIR',
+                              value: "${env.WORKING_DIR}"
+                            )
+                          ]
+          }
+      }
+    }
+
+    stage('Configure sshd') {
+      steps {
+        withCredentials(
+                          [
+                            string(
+                              variable: 'ANSIBLE_PORT',
+                              credentialsId: 'ansible_port'
+                            ),
+                            file(
+                              variable: 'INVENTORY',
+                              credentialsId: 'aws_ansible_inventory_ssh'
+                            )
+                          ]
+                       )
+          {
+            build job: 'ansible/playbook',
+              parameters: [
+                            string(
+                              name: 'ANSIBLE_PLAYBOOK',
+                              value: "${env.ANSIBLE_PLAYBOOK_3}"
+                            ),
+                            password(
+                              name: 'EXTRA_ARGS',
+                              value: "-e 'sshd_port=${env.ANSIBLE_PORT}'"
+                            ),
+                            string(
+                              name: 'GIT_BRANCHES_ANSIBLE',
+                              value: "${params.GIT_BRANCHES_ANSIBLE}"
+                            ),
+                            string(
+                              name: 'GIT_URL',
+                              value: "${env.ANSIBLE_GIT_URL}"
+                            ),
+                            credentials(
+                              name: 'INVENTORY',
+                              value: "${env.INVENTORY}"
+                            ),
+                            string(
+                              name: 'PRIVATE_KEY_PATH',
+                              value: "${env.PRIVATE_KEY_PATH}"
+                            ),
+                            string(
+                              name: 'WORKING_DIR',
+                              value: "${env.WORKING_DIR}"
+                            )
+                          ]
+          }
+      }
+    }
+  }
+}
